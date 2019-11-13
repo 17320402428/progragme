@@ -8,13 +8,20 @@
                :rules="loginRules">
         <el-form-item prop="mobile">
           <el-input v-model="loginForm.mobile"
-                    placeholder="请输入手机号"></el-input>
+                    placeholder="请输入手机号"><i slot="prefix"
+               class="el-icon-phone"></i></el-input>
         </el-form-item>
         <el-form-item prop="code">
           <el-input v-model="loginForm.code"
-                    placeholder="请输入验证码"></el-input>
+                    placeholder="请输入验证码"><i slot="prefix"
+               class="el-icon-s-comment"></i>
+          </el-input>
         </el-form-item>
-        <el-form-item prop="agreement">
+        <!-- <el-form-item>
+          <div id="captcha-box"></div>
+        </el-form-item> -->
+        <el-form-item prop="agreement"
+                      style="margin-bottom:0">
           <el-checkbox label="我已阅读并同意用户协议和隐私条款"
                        name="type"
                        v-model="loginForm.agreement"></el-checkbox>
@@ -22,6 +29,8 @@
         <el-form-item>
           <el-button type="primary"
                      style="width:100%;margin-top:15px;"
+                     :loading="isactive"
+                     :disabled="isactive"
                      @click="login">立即登录</el-button>
         </el-form-item>
       </el-form>
@@ -32,7 +41,7 @@
 
 <script>
 // @ is an alias to /src
-
+import '@/assets/js/gt.js'
 export default {
   name: 'home',
   components: {
@@ -46,6 +55,8 @@ export default {
       }
     }
     return {
+      isactive: false, // loading加载
+      caObj: null,
       loginForm: {
         mobile: '15122223333', // 手机号
         code: '246810', // 验证码
@@ -68,13 +79,50 @@ export default {
   methods: {
     login () {
       this.$refs.ruleForm.validate((valid) => {
-        // 格式正确的话，发送请求验证账号密码
         if (valid) {
-          this.$http.post('/authorizations', this.loginForm)
-            .then((res) => { let data = res.data; if (data.message === 'OK') { window.localStorage.setItem('user', JSON.stringify(data.data)); this.$router.push({ name: 'index' }) } })
-            .catch((err) => { console.log('网络不稳定哦，请稍后再试~') })
+          if (this.caObj !== null) {
+            return this.caObj.verify()
+          }
+          this.isactive = true
+          this.$http.get(`/captchas/${this.loginForm.mobile}`)
+            .then(res => {
+              // 请检测data的数据结构， 保证data.gt, data.challenge, data.success有值
+              var data = res.data.data
+              window.initGeetest({
+                // 以下配置参数来自服务端 SDK
+                gt: data.gt,
+                challenge: data.challenge,
+                offline: !data.success,
+                new_captcha: true,
+                product: 'bind',
+                lang: 'ja'
+              }, captchaObj => {
+                // 这里可以调用验证实例 captchaObj 的实例方法
+                captchaObj.onReady(() => {
+                  // 当验证框出现时，按钮恢复可点击状态
+                  captchaObj.verify()
+                  this.caObj = captchaObj
+                  this.isactive = false
+                }).onSuccess(() => {
+                  this.loginChe()
+                })
+              })
+            })
         }
       })
+    },
+    loginChe () {
+      // 格式正确的话，发送请求验证账号密码
+
+      this.$http.post('/authorizations', this.loginForm)
+        .then((res) => {
+          let data = res.data
+          if (data.message === 'OK') {
+            window.localStorage.setItem('user', JSON.stringify(data.data))
+            this.$router.push({ name: 'wel' })
+          }
+        })
+        .catch(err => console.log('网络不稳定哦，请稍后再试~' + err))
     }
   }
 }
