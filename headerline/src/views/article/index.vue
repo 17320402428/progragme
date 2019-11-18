@@ -16,17 +16,8 @@
               <el-radio-button label="3">审核失败</el-radio-button>
             </el-radio-group>
           </el-form-item>
-          <el-form-item label="频道列表：">
-            <el-select v-model="searchForm.channel_id" placeholder="请选择">
-              <el-option
-                v-for="item in channelList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              >
-              </el-option>
-            </el-select>
-          </el-form-item>
+          <!-- 父组件频道类别位置 -->
+          <channel-com @slt="selectHandler"></channel-com>
           <el-form-item label="时间选择：">
             <el-date-picker
               v-model="timetotime"
@@ -69,7 +60,7 @@
           </el-table-column>
           <el-table-column label="操作" widhth="160">
             <template slot-scope="stData">
-              <el-button type="primary" size="mini">修改</el-button>
+              <el-button type="primary" size="mini" @click="$router.push(`/artedor/${stData.row.id}`)">修改</el-button>
               <el-button type="danger" size="mini" @click="del(stData.row.id)"
                 >删除</el-button
               >
@@ -96,11 +87,13 @@
 <script>
 // 这里可以导入其他文件（比如：组件，工具js，第三方插件js，json文件，图片文件等等）
 // 例如：import 《组件名称》 from '《组件路径》';
-
+import ChannelCom from '@/components/channel.vue'
 export default {
   name: 'articles',
   // import引入的组件需要注入到对象中才能使用
-  components: {},
+  components: {
+    ChannelCom
+  },
   data () {
     // 这里存放数据
     return {
@@ -140,19 +133,9 @@ export default {
   },
   // 方法集合
   methods: {
-    // 获取频道
-    getChannelList () {
-      this.$http
-        .get('/channels')
-        .then(res => {
-          let data = res.data
-          if (data.message === 'OK') {
-            this.channelList = data.data.channels
-          }
-        })
-        .catch(err => {
-          console.log('错误' + err)
-        })
+    // 获取子组件传来的channel值
+    selectHandler (arg) {
+      this.searchForm.channel_id = arg
     },
     // 获取文章列表
     getAtricle () {
@@ -200,7 +183,6 @@ export default {
   },
   // 生命周期 - 创建完成（可以访问当前this实例）
   created () {
-    this.getChannelList()
     this.getAtricle()
   },
   // 生命周期 - 挂载完成（可以访问DOM元素）

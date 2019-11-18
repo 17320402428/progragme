@@ -6,4 +6,7 @@
 </template>
 
 <style lang="less" scoped>
+#app{
+  overflow-y: hidden
+}
 </style>

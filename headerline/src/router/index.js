@@ -5,6 +5,9 @@ import Index from '../views/login/index.vue'
 import Welcome from '../views/WelCome/index.vue'
 import Article from '../views/article/index.vue'
 import artAdd from '../views/atricleAdd/index.vue'
+import artEdtior from '../views/articleeditor/index.vue'
+import Account from '@/views/account/index.vue'
+import Materail from '@/views/material/index.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -33,6 +36,22 @@ const routes = [
         path: '/artadd',
         name: 'artadd',
         component: artAdd
+      },
+      {
+        path: '/artedor/:eid',
+        name: 'artedor',
+        component: artEdtior
+      },
+      {
+        path: '/account',
+        name: 'account',
+        component: Account
+      },
+      {
+        path: '/material',
+        name: 'material',
+        component: Materail
+        // component: () => import('@/views/material')
       }
     ]
   }

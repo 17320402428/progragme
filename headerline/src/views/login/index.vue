@@ -21,14 +21,14 @@
             <el-menu-item index="/artadd">发布文章</el-menu-item>
             <el-menu-item index="/article">文章列表</el-menu-item>
             <el-menu-item index="2-3">评论列表</el-menu-item>
-            <el-menu-item index="2-4">素材管理</el-menu-item>
+            <el-menu-item index="/material">素材管理</el-menu-item>
           </el-menu-item-group>
         </el-submenu>
         <el-menu-item index="3">
           <i class="el-icon-menu"></i>
           <span slot="title">粉丝管理</span>
         </el-menu-item>
-        <el-menu-item index="4">
+        <el-menu-item index="/account">
           <i class="el-icon-menu"></i>
           <span slot="title">账户管理</span>
         </el-menu-item>
@@ -57,7 +57,7 @@
               <img :src="photo"
                    alt=""
                    width="40">
-              <span class="user_name">伊丽莎白·奥尔森</span><i class="el-icon-arrow-down el-icon--right"></i>
+              <span class="user_name">{{name}}</span><i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
               <el-dropdown-item>个人信息</el-dropdown-item>
@@ -78,13 +78,15 @@
 <script>
 // 这里可以导入其他文件（比如：组件，工具js，第三方插件js，json文件，图片文件等等）
 // 例如：import 《组件名称》 from '《组件路径》';
-
+import bus from '../../utils/bus'
 export default {
   // import引入的组件需要注入到对象中才能使用
   components: {},
   data () {
     // 这里存放数据
     return {
+      tempname: '', // 账户临时名称
+      tempphoto: '', // 临时照片
       input4: '',
       isCollapse: false
     }
@@ -92,10 +94,10 @@ export default {
   // 监听属性 类似于data概念
   computed: {
     name () {
-      return JSON.parse(window.localStorage.getItem('user')).name
+      return this.tempname || JSON.parse(window.localStorage.getItem('user')).name
     },
     photo () {
-      return JSON.parse(window.localStorage.getItem('user')).photo
+      return this.tempphoto || JSON.parse(window.localStorage.getItem('user')).photo
     }
   },
   // 监控data中的数据变化
@@ -120,7 +122,18 @@ export default {
   },
   // 生命周期 - 创建完成（可以访问当前this实例）
   created () {
-
+    bus.$on('upAccountName', nmb => {
+      this.tempname = nmb
+      let userinfo = JSON.parse(window.localStorage.getItem('user'))
+      userinfo.name = nmb
+      window.localStorage.setItem('user', JSON.stringify(userinfo))
+    })
+    bus.$on('upAccountPhoto', cnm => {
+      this.tempphoto = cnm
+      let userinfo = JSON.parse(window.localStorage.getItem('user'))
+      userinfo.tempphoto = cnm
+      window.localStorage.setItem('user', JSON.stringify(userinfo))
+    })
   },
   // 生命周期 - 挂载完成（可以访问DOM元素）
   mounted () {
